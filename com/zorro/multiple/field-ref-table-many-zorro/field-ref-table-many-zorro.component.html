@@ -1,0 +1,69 @@
+<ng-container *ngIf="mode==ModeEnum.Show">
+    {{read(value)}}
+
+</ng-container>
+<ng-container *ngIf="mode==ModeEnum.Create||mode==ModeEnum.Update">
+    <nz-form-item *ngIf="!value">
+        <nz-form-label style="margin-right: 55px;" [nzRequired]="field.valid.required" [nzXs]="24 " [nzSm]="4 ">{{field.alias || field.fieldName}}</nz-form-label>
+        <nz-form-control [nzXs]="24 " [nzSm]="16">
+            <!-- <input type="text" [(ngModel)]="keyword" nz-input (keyup.enter)="selecting = true;query()" *ngIf="!value"> -->
+            <nz-input-group nzSearch [nzSuffix]="suffixIconButton">
+                <input type="text" nz-input [placeholder]="field.alias" [(ngModel)]="keyword" (keyup.enter)="selecting = true;query()">
+            </nz-input-group>
+            <ng-template #suffixIconButton>
+                <button nz-button nzType="primary" nzSearch (click)="selecting = true;query()"><i nz-icon type="search"></i>搜索</button>
+            </ng-template>
+        </nz-form-control>
+    </nz-form-item>
+    <nz-form-item *ngIf="value">
+        <nz-form-label style="margin-right: 55px;" [nzRequired]="field.valid.required" [nzXs]="24 " [nzSm]="4 ">{{field.alias || field.fieldName}}</nz-form-label>
+        <nz-form-control [nzXs]="24 " [nzSm]="16">
+            <nz-tag nzMode="closeable" *ngFor="let tag of read(value);let i= index" [nzColor]="'green'" (nzOnClose)="clearSelected(i)" [nzChecked]="true">{{ tag}}</nz-tag>
+        </nz-form-control>
+    </nz-form-item>
+
+</ng-container>
+
+<ng-container *ngIf="selecting">
+    <nz-modal [nzWidth]="800" [nzVisible]="false" (nzOnOk)="checked()" (nzOnCancel)="selecting=false" (keyup)="onKeyboard($event)">
+        <nz-table #basicTable>
+            <thead>
+                <tr>
+                    <th nzShowCheckbox [nzDisabled]="true"></th>
+
+                    <th *ngFor="let field of metaCom.metaFields">{{field.alias || field.fieldName}}</th>
+
+                </tr>
+            </thead>
+            <tbody>
+                <tr *ngFor="let data of dataSet;let i=index;">
+                    <td nzShowCheckbox [(nzChecked)]="data.checked"></td>
+
+                    <td *ngFor="let field of metaCom.metaFields">{{ read(data[field.fieldName],field) }}</td>
+                </tr>
+            </tbody>
+        </nz-table>
+    </nz-modal>
+</ng-container>
+<ng-container *ngIf="selecting">
+    <nz-drawer [nzPlacement]="'left'" [nzWidth]="900" [nzBodyStyle]="{height: 'calc(100vh - 53px)', overflow: 'auto', 'padding-bottom':'53px' }" [nzClosable]="false" [nzVisible]="selecting" nzTitle="选择一条数据" (nzOnClose)="selecting=false">
+        <nz-table #basicTable [nzData]="dataSet">
+            <thead>
+                <tr>
+                    <th nzShowCheckbox [nzDisabled]="true"></th>
+                    <th *ngFor="let field of filterTable(metaCom.metaFields)">{{field.alias || field.fieldName}}</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr *ngFor="let data of dataSet;let i=index;" (click)="checked(data)">
+                    <td nzShowCheckbox [nzChecked]="data.checked"></td>
+                    <td *ngFor="let field of filterTable(metaCom.metaFields)">{{ read(data[field.fieldName],field) }}</td>
+                </tr>
+            </tbody>
+        </nz-table>
+        <div class="footer">
+            <button type="button" (click)="close()" class="ant-btn" style="margin-right: 8px;"><span>取消</span></button>
+            <button type="button" (click)="comfirm()" class="ant-btn ant-btn-primary"><span>确定</span></button>
+        </div>
+    </nz-drawer>
+</ng-container>
